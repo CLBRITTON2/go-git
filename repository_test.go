@@ -1045,7 +1045,7 @@ func (s *RepositorySuite) TestPlainCloneOverExistingGitDirectory() {
 		URL: s.GetBasicLocalRepositoryURL(),
 	})
 	s.Nil(r)
-	s.ErrorIs(err, ErrRepositoryAlreadyExists)
+	s.ErrorIs(err, ErrCloneDirNotEmpty)
 }
 
 func (s *RepositorySuite) TestPlainCloneContextCancel() {
@@ -1153,8 +1153,8 @@ func (s *RepositorySuite) TestPlainCloneContextNonExistentWithNotEmptyDir() {
 	r, err := PlainCloneContext(ctx, fs.Join(fs.Root(), repoDir), &CloneOptions{
 		URL: "incorrectOnPurpose",
 	})
-	s.NotNil(r)
-	s.ErrorIs(err, transport.ErrRepositoryNotFound)
+	s.Nil(r)
+	s.ErrorIs(err, ErrCloneDirNotEmpty)
 
 	_, err = fs.Stat(dummyFile)
 	s.NoError(err)
@@ -1175,7 +1175,7 @@ func (s *RepositorySuite) TestPlainCloneContextNonExistingOverExistingGitDirecto
 		URL: "incorrectOnPurpose",
 	})
 	s.Nil(r)
-	s.ErrorIs(err, ErrRepositoryAlreadyExists)
+	s.ErrorIs(err, ErrCloneDirNotEmpty)
 }
 
 func (s *RepositorySuite) TestPlainCloneWithRecurseSubmodules() {
@@ -1309,8 +1309,8 @@ func (s *RepositorySuite) TestFetchWithFilters() {
 		Filter: packp.FilterBlobNone(),
 	})
 	s.ErrorIs(err, transport.ErrFilterNotSupported)
-
 }
+
 func (s *RepositorySuite) TestFetchWithFiltersReal() {
 	r, _ := Init(memory.NewStorage())
 	_, err := r.CreateRemote(&config.RemoteConfig{
@@ -1325,8 +1325,8 @@ func (s *RepositorySuite) TestFetchWithFiltersReal() {
 	blob, err := r.BlobObject(plumbing.NewHash("9a48f23120e880dfbe41f7c9b7b708e9ee62a492"))
 	s.NotNil(err)
 	s.Nil(blob)
-
 }
+
 func (s *RepositorySuite) TestCloneWithProgress() {
 	s.T().Skip("Currently, go-git server-side implementation does not support writing" +
 		"progress and sideband messages to the client. This means any tests that" +
